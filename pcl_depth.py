@@ -11,6 +11,7 @@ import random
 
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
+from sklearn.cluster import DBSCAN
 
 import tf
 import scipy.io
@@ -386,20 +387,16 @@ def clean_tabletop_pcd(path, table_mask,tabletop_pcd):
 
 	return tabletop_pcd_clean[:index,:]
 
+	# index = 0
+	# for p in tabletop_norm:
+	# 	print index
+	# 	index += 1
+	# 	idx = check_ele_list(p,table_norm)
+	# 	if idx != -1:
+	# 		np.delete(tabletop_pcd_cp,(idx),axis=0)
+	# 		del table_norm[idx]
 
-
-
-
-	index = 0
-	for p in tabletop_norm:
-		print index
-		index += 1
-		idx = check_ele_list(p,table_norm)
-		if idx != -1:
-			np.delete(tabletop_pcd_cp,(idx),axis=0)
-			del table_norm[idx]
-
-	return tabletop_pcd_cp
+	# return tabletop_pcd_cp
 
 
 
@@ -458,6 +455,39 @@ if __name__ == "__main__":
 			# print type(table_mask[0,0])
 
 			table_top_pcd_clean = clean_tabletop_pcd(filename_camera,table_mask,table_top_pcd)
+			db = DBSCAN(eps=0.075, min_samples=1000).fit(table_top_pcd_clean)
+
+			cluster_labels = db.labels_
+
+			obj_3d = []
+			for i in range(np.unique(cluster_labels).shape[0]-1):
+				idx = np.where(cluster_labels==i)
+				obj_i = table_top_pcd_clean[idx,:]
+				obj_i = np.squeeze(obj_i,axis=0)
+				obj_3d.append(obj_i)
+
+			# import ipdb
+			# ipdb.set_trace()
+
+			norm_sum_ls=[]
+			for i in range(len(obj_3d)):
+				# norm_sum = 0
+				# for j in range(obj_3d[i].shape[0]):
+				# 	min_norm = 100000
+				# 	anchor = obj_3d[i][j,:]
+				# 	for k in range(j+1,obj_3d[i].shape[0]):
+				# 		dis = np.linalg.norm(anchor-obj_3d[i][k,:])
+				# 		if dis <min_norm: min_norm = dis
+				# 	print min_norm
+				# 	norm_sum += min_norm
+				# norm_sum_ls.append(norm_sum)
+				# print float(norm_sum/obj_3d[i].shape[0])
+				save_pcl(obj_3d[i],'test2_{:d}.pcd'.format(i))
+
+
+
+			import ipdb
+			ipdb.set_trace()
 
 			table_full_mask = np.logical_or(table_top_mask,table_mask)
 
@@ -580,8 +610,8 @@ if __name__ == "__main__":
 			# save_pcl(points,'test.pcd')
 			# print points.shape
 			# sys.exit()
-			import ipdb
-			ipdb.set_trace()
+			# import ipdb
+			# ipdb.set_trace()
 			filtered_mask, total_index = search_around_point(idx_0_table_mask_ls, table_mask)
 
 			# print filtered_mask[10,10]

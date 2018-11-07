@@ -53,5 +53,5 @@ def cfg_from_file(filename):
 
 
 
-# cfg_from_file('/home/weizhang/Documents/pcl_post_processing/cfgs/cfg_2d_clustering.yaml')
+cfg_from_file('/home/weizhang/Documents/pcl_post_processing/cfgs/cfg_2d_clustering.yaml')
 # print cfg

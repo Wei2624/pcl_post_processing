@@ -13,6 +13,7 @@ from sklearn.cluster import DBSCAN
 import tf
 import math
 import pickle
+import time
 
 from lib.cfg_importer import cfg
 
@@ -29,14 +30,15 @@ from clustering import clustering_3D
 from lib.util import point_inline_check
 from lib.util import draw_contours
 from vote import voting 
+from pcl_pixel_processing import plane_finder
 from lib.cfg_importer import cfg
 
 
-WIDTH = 640
-HEIGHT = 480
+# WIDTH = 640
+# HEIGHT = 480
 
-label_color = [(0,255,0), (0,0,255), (0,255,255), (255,255,0),(255,0,255),(0,0,188)]
-outlier_color = [(0,0,0), (255,0,0)]
+# label_color = [(0,255,0), (0,0,255), (0,255,255), (255,255,0),(255,0,255),(0,0,188)]
+# outlier_color = [(0,0,0), (255,0,0)]
 
 
 # def pcl_to_2dcoord(path, pcd):
@@ -263,51 +265,75 @@ outlier_color = [(0,0,0), (255,0,0)]
 
 
 if __name__ == "__main__":
-	for i in range(16,17):
+	p = pcl.PointCloud()
+
+	for i in range(15,16):
 		print i
 		base_path = '/home/weizhang/DA-RNN/data/LabScene/data/'  + '{:04d}/'.format(i)
 		if not os.path.exists(base_path): os.mkdir(base_path)
-		for j in xrange(29,30):
+		for j in xrange(13,14):
+			start_time = time.time()
+			filename_full_pcd = os.path.join(base_path,'{:04d}_pcl.pcd'.format(j))
+			folder_plane_pcd = os.path.join(base_path,'{:04d}/'.format(j))
+			plane_finder.plane_finder(filename_full_pcd,folder_plane_pcd)
+			print "--- %s seconds ---" % (time.time() - start_time)
 			print j			
-			path_plane_pcd = os.path.join(base_path,'{:04d}/'.format(j))
-			table_pcd = pcl_processing.table_plane_pcl(path_plane_pcd)
+			table_pcd = pcl_processing.table_plane_pcl(p, folder_plane_pcd)
+			print "--- %s seconds ---" % (time.time() - start_time)
 
+			# import ipdb
+			# ipdb.set_trace()
 
-			filename_pcd = os.path.join(base_path,'{:04d}_pcl.pcd'.format(j))
-			p = pcl.PointCloud()
-			p.from_file(filename_pcd)
+			p.from_file(filename_full_pcd)
 			full_pcd = p.to_array()
 
 			table_top_pcd = pcl_processing.pcl_above_plane(table_pcd, full_pcd)
+			print "--- %s seconds ---" % (time.time() - start_time)
 
 			# table_top_pcd = clustering_3D.clean_tabletop_pcd(table_pcd,table_top_pcd)
 
 
 			filename_camera = os.path.join(base_path,'{:04d}_pkl.pkl'.format(j))
-			# full_mask = pcl_pixel_transform.pcl_to_2dcoord(filename_camera,full_pcd)
-			table_top_mask = pcl_pixel_transform.pcl_to_2dcoord(filename_camera,table_top_pcd)
+			cam_model = pcl_pixel_transform.Transfomer(filename_camera)
+			# print cam_model.cam_model
 
-			# full_mask = pcl_to_2dcoord(filename_camera,full_pcd)
-			table_mask = pcl_pixel_transform.pcl_to_2dcoord(filename_camera,table_pcd)
+			# full_mask = cam_model.pcl_to_2dcoord(full_pcd)
+			
+
+			# full_mask = cam_model.pcl_to_2dcoord(full_pcd)
+			table_mask = cam_model.pcl_to_2dcoord(table_pcd)
+			print "--- %s seconds ---" % (time.time() - start_time)
+			# plt.imshow(table_mask)
+			# plt.show()
 			# print type(table_mask[0,0])
 
-			table_top_pcd_clean = clustering_3D.clean_tabletop_pcd(filename_camera,table_mask,table_top_pcd)
-			db = DBSCAN(eps=0.1, min_samples=1000).fit(table_top_pcd_clean)
+			# table_top_pcd_clean = clustering_3D.clean_tabletop_pcd(cam_model,table_mask,table_top_pcd)
 
-			cluster_labels = db.labels_
+			# db = clustering_3D.density_clustering(table_top_pcd_clean)
+			# cluster_labels = db.labels_
+			# obj_pcl = clustering_3D.seg_pcl_from_labels(cluster_labels,table_top_pcd_clean)
 
-			obj_3d = []
-			for i in range(np.unique(cluster_labels).shape[0]-1):
-				idx = np.where(cluster_labels==i)
-				obj_i = table_top_pcd_clean[idx,:]
-				obj_i = np.squeeze(obj_i,axis=0)
-				obj_3d.append(obj_i)
+			# obj_3d = []
+			# for i in range(np.unique(cluster_labels).shape[0]-1):
+			# 	idx = np.where(cluster_labels==i)
+			# 	obj_i = table_top_pcd_clean[idx,:]
+			# 	obj_i = np.squeeze(obj_i,axis=0)
+			# 	obj_3d.append(obj_i)
 
 			# import ipdb
 			# ipdb.set_trace()
 
-			norm_sum_ls=[]
-			for i in range(len(obj_3d)):
+			# norm_sum_ls=[]
+			# filtered_mask = table_mask.copy()
+			# mask_idx = 2
+			# for i in range(len(obj_pcl)):
+			# 	for j in range(obj_pcl[i].shape[0]):
+			# 		coord_2d = cam_model.cam_model.project3dToPixel(obj_pcl[i][j,:])
+			# 		coord_2d = list(coord_2d)
+			# 		coord_2d[0] = int(round(coord_2d[0]))
+			# 		coord_2d[1] = int(round(coord_2d[1]))
+			# 		filtered_mask[coord_2d[1],coord_2d[0]] = mask_idx
+			# 	mask_idx += 1
 				# norm_sum = 0
 				# for j in range(obj_3d[i].shape[0]):
 				# 	min_norm = 100000
@@ -319,22 +345,22 @@ if __name__ == "__main__":
 				# 	norm_sum += min_norm
 				# norm_sum_ls.append(norm_sum)
 				# print float(norm_sum/obj_3d[i].shape[0])
-				pcl_processing.save_pcl(obj_3d[i],'test_{:d}.pcd'.format(i))
+				# pcl_processing.save_pcl(obj_3d[i],'test_{:d}.pcd'.format(i))
 
 
 
-			import ipdb
-			ipdb.set_trace()
+			# import ipdb
+			# ipdb.set_trace()
 
-			table_full_mask = np.logical_or(table_top_mask,table_mask)
+			# table_full_mask = np.logical_or(table_top_mask,table_mask)
 
 			# plt.imshow(table_mask)
 			# plt.show()
-			pcl_processing.save_pcl(table_top_pcd_clean,'test.pcd')
-			sys.exit()
+			# pcl_processing.save_pcl(table_top_pcd_clean,'test.pcd')
+			# sys.exit()
 
 
-			_, contours, _ = cv2.findContours(table_full_mask.astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+			# _, contours, _ = cv2.findContours(table_full_mask.astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 			# print type(contours)
 
 			# table_full_mask = np.expand_dims(table_full_mask,axis=2)
@@ -361,35 +387,40 @@ if __name__ == "__main__":
 			# table_mask, contours, hierarchy = cv2.findContours(table_mask.astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 			# table_mask = np.expand_dims(table_mask,axis=2)
 			# table_mask = np.tile(table_mask,(1,1,3))
-			cv2.drawContours(table_mask, contours,-1, (2), 3)
+			# cv2.drawContours(table_mask, contours,-1, (2), 3)
 
 			# plt.imshow(table_mask)
 			# plt.show()
 			# print 1 in table_mask[0:164,589] and 1 in table_mask[164:HEIGHT,589] and 1 in table_mask[164,0:589] and 1 in table_mask[164,589:WIDTH]
 			# sys.exit()
 
-			idx_0_table_mask = np.where(table_mask == 0)
-			idx_0_table_mask_ls = []
-			for i in xrange(idx_0_table_mask[0].shape[0]):
-				x = idx_0_table_mask[0][i]
-				y = idx_0_table_mask[1][i]
-				if (1 in table_mask[0:x,y] or 2 in table_mask[0:x,y]) and \
-					(1 in table_mask[x:HEIGHT,y] or 2 in table_mask[x:HEIGHT,y]) \
-					and (1 in table_mask[x,0:y] or 1 in table_mask[x,0:y])\
-					 and (1 in table_mask[x,y:WIDTH] or 2 in table_mask[x,y:WIDTH]): 
+			# idx_0_table_mask = np.where(table_mask == 0)
+			# idx_0_table_mask_ls = clustering_2D.validate_bg_points(idx_0_table_mask,table_mask,table_full_mask)
+			# idx_0_table_mask_ls = []
+			# for i in xrange(idx_0_table_mask[0].shape[0]):
+			# 	x = idx_0_table_mask[0][i]
+			# 	y = idx_0_table_mask[1][i]
+			# 	if (1 in table_mask[0:x,y] or 2 in table_mask[0:x,y]) and \
+			# 		(1 in table_mask[x:cfg.IMG_HEIGHT,y] or 2 in table_mask[x:cfg.IMG_HEIGHT,y]) \
+			# 		and (1 in table_mask[x,0:y] or 1 in table_mask[x,0:y])\
+			# 		 and (1 in table_mask[x,y:cfg.IMG_WIDTH] or 2 in table_mask[x,y:cfg.IMG_WIDTH]): 
 
 
-					if not np.any(table_mask[x:x+5,y]) and not np.any(table_mask[x:x-5,y]) \
-						and not np.any(table_mask[x,y:y+5]) and not np.any(table_mask[x,y-5]):
-						if table_full_mask[x,y] == 1:
-							idx_0_table_mask_ls.append((x,y))
+			# 		if not np.any(table_mask[x:x+5,y]) and not np.any(table_mask[x:x-5,y]) \
+			# 			and not np.any(table_mask[x,y:y+5]) and not np.any(table_mask[x,y-5]):
+			# 			if table_full_mask[x,y] == 1:
+			# 				idx_0_table_mask_ls.append((x,y))
 
 			
 
 			# points = pcl_pixel_transform.pixel_to_pcl(filename_camera,idx_0_table_mask_ls)
 			# pcl_processing.save_pcl(points,'test.pcd')
 			# print points.shape
-			filtered_mask, total_index = clustering_2D.search_around_point(idx_0_table_mask_ls, table_mask)
+
+			if cfg.CLUSTERING_DIM == '2D':
+				filtered_mask, mask_idx = clustering_2D.clustering(cam_model, table_mask, table_top_pcd)
+			if cfg.CLUSTERING_DIM == '3D':
+				filtered_mask, mask_idx = clustering_3D.clustering(cam_model, table_mask, table_top_pcd)
 
 			# print filtered_mask[10,10]
 
@@ -399,13 +430,17 @@ if __name__ == "__main__":
 			# print np.where(filtered_mask==2)[0].shape
 			# sys.exit()
 
+
+			print "--- %s seconds ---" % (time.time() - start_time)
 			filename_label = os.path.join(base_path,'{:04d}_label.png'.format(j))
 			im_label = cv2.imread(filename_label)
 			im_label = im_label[...,[2,1,0]]
 
-			im_label = voting.post_proc_label(filtered_mask,im_label, total_index)
+			im_label = voting.post_proc_label(filtered_mask,im_label, mask_idx)
 
 			im_label = im_label[...,[2,1,0]]
+
+			print "--- %s seconds ---" % (time.time() - start_time)
 
 			plt.imshow(im_label)
 			plt.show()

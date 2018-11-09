@@ -21,10 +21,10 @@ def save_pcl(pcd, name):
 	pc.to_file(name)
 
 
-def table_plane_pcl(path):
+def table_plane_pcl(p, path):
 	table_pcd = []
 	min_distance = 10000000000000
-	p = pcl.PointCloud()
+	# p = pcl.PointCloud()
 	for f in os.listdir(path):
 		p.from_file(os.path.join(path, f))
 		pcd = p.to_array()

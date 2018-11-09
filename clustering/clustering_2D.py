@@ -73,3 +73,35 @@ def search_around_point(idx_list, mask):
 			# plt.show()
 	# sys.exit()
 	return mask_updated, fill_idx
+
+def validate_bg_points(idx_0_table_mask,table_mask,table_full_mask):
+	idx_0_table_mask_ls = []
+	for i in xrange(idx_0_table_mask[0].shape[0]):
+		x = idx_0_table_mask[0][i]
+		y = idx_0_table_mask[1][i]
+		if (1 in table_mask[0:x,y] or 2 in table_mask[0:x,y]) and \
+			(1 in table_mask[x:cfg.IMG_HEIGHT,y] or 2 in table_mask[x:cfg.IMG_HEIGHT,y]) \
+			and (1 in table_mask[x,0:y] or 1 in table_mask[x,0:y])\
+			 and (1 in table_mask[x,y:cfg.IMG_WIDTH] or 2 in table_mask[x,y:cfg.IMG_WIDTH]): 
+
+
+			if not np.any(table_mask[x:x+5,y]) and not np.any(table_mask[x:x-5,y]) \
+				and not np.any(table_mask[x,y:y+5]) and not np.any(table_mask[x,y-5]):
+				if table_full_mask[x,y] == 1:
+					idx_0_table_mask_ls.append((x,y))
+
+
+	return idx_0_table_mask_ls
+
+
+
+def clustering(cam_model,table_mask, table_top_pcd):
+	table_top_mask = cam_model.pcl_to_2dcoord(table_top_pcd)
+	table_full_mask = np.logical_or(table_top_mask,table_mask)
+	_, contours, _ = cv2.findContours(table_full_mask.astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+	cv2.drawContours(table_mask, contours,-1, (2), 3)
+
+	idx_0_table_mask = np.where(table_mask == 0)
+	idx_0_table_mask_ls = validate_bg_points(idx_0_table_mask,table_mask,table_full_mask)
+
+	return search_around_point(idx_0_table_mask_ls, table_mask)

@@ -15,6 +15,10 @@ __C.IMG_HEIGHT = 480
 __C.CLUSTERING_DIM = '3D'
 __C.LABEL_COLOR = [(0,255,0), (0,0,255), (0,255,255), (255,255,0),(255,0,255),(0,0,188)]
 __C.OUTLIER_COLOR = [(0,0,0), (255,0,0)]
+__C.fx = 575.8
+__C.fy = 575.8
+__C.cx = 314.5
+__C.cy = 235.5
 
 
 def _merge_a_into_b(a, b):

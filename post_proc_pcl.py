@@ -29,6 +29,7 @@ from clustering import clustering_2D
 from clustering import clustering_3D
 from lib.util import point_inline_check
 from lib.util import draw_contours
+from lib.py_wrapper import find_table_plane
 from vote import voting 
 from pcl_pixel_processing import plane_finder
 from lib.cfg_importer import cfg
@@ -263,19 +264,18 @@ from lib.cfg_importer import cfg
 
 # 	return tabletop_pcd_clean[:index,:]
 
-def project3Dto2D(pcd, fx,fy,cx,cy): 
-	mask = np.zeros((cfg.IMG_HEIGHT,cfg.IMG_WIDTH))
-	for i in xrange(pcd.shape[0]):
-		x = int((fx*pcd[i,0])/pcd[i,2] +cx)
-		y = int((fy*pcd[i,1])/pcd[i,2] +cy)
-		mask[y,x] = 1
-	return mask
+# def project3Dto2D(pcd, fx,fy,cx,cy): 
+# 	mask = np.zeros((cfg.IMG_HEIGHT,cfg.IMG_WIDTH))
+# 	for i in xrange(pcd.shape[0]):
+# 		x = int((fx*pcd[i,0])/pcd[i,2] +cx)
+# 		y = int((fy*pcd[i,1])/pcd[i,2] +cy)
+# 		mask[y,x] = 1
+# 	return mask
 
 
 
 if __name__ == "__main__":
 	p = pcl.PointCloud()
-
 	for i in range(15,16):
 		print i
 		base_path = '/home/weizhang/DA-RNN/data/LabScene/data/'  + '{:04d}/'.format(i)
@@ -283,20 +283,22 @@ if __name__ == "__main__":
 		for j in xrange(0,50):
 			start_time = time.time()
 			filename_full_pcd = os.path.join(base_path,'{:04d}_pcl.pcd'.format(j))
-			folder_plane_pcd = os.path.join(base_path,'{:04d}/'.format(j))
-			plane_finder.plane_finder(filename_full_pcd,folder_plane_pcd)
+			p.from_file(filename_full_pcd)
+			full_pcd = p.to_array()
+			# folder_plane_pcd = os.path.join(base_path,'{:04d}/'.format(j))
+			table_pcd = find_table_plane(full_pcd)
 			# print "--- %s seconds ---" % (time.time() - start_time)
 			print j			
-			table_pcd = pcl_processing.table_plane_pcl(p, folder_plane_pcd)
+			# table_pcd = pcl_processing.table_plane_pcl(p, folder_plane_pcd)
 			# print "--- %s seconds ---" % (time.time() - start_time)
 
 			# import ipdb
 			# ipdb.set_trace()
 
-			p.from_file(filename_full_pcd)
+			
 			# import ipdb
 			# ipdb.set_trace()
-			full_pcd = p.to_array()
+			
 
 			table_top_pcd = pcl_processing.pcl_above_plane(table_pcd, full_pcd)
 			# print "--- %s seconds ---" % (time.time() - start_time)
@@ -305,7 +307,7 @@ if __name__ == "__main__":
 
 
 			filename_camera = os.path.join(base_path,'{:04d}_pkl.pkl'.format(j))
-			cam_model = pcl_pixel_transform.Transfomer(575.8,575.8,314.5,235.5)
+			cam_model = pcl_pixel_transform.Transfomer(cfg.fx,cfg.fy,cfg.cx,cfg.cy)
 			# print cam_model.cam_model
 
 			# full_mask = cam_model.pcl_to_2dcoord(full_pcd)

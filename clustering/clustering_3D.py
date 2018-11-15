@@ -32,7 +32,7 @@ def clean_tabletop_pcd(cam_model, table_mask,tabletop_pcd):
 	# img_geo.fromCameraInfo(camera_info)
 	index = 0
 	for i in xrange(tabletop_pcd.shape[0]):
-		coord_2d = cam_model.cam_model.project3dToPixel(tabletop_pcd[i,:])
+		coord_2d = cam_model.project3Dto2D(tabletop_pcd[i,:])
 		coord_2d = list(coord_2d)
 		coord_2d[0] = int(round(coord_2d[0]))
 		coord_2d[1] = int(round(coord_2d[1]))
@@ -43,7 +43,7 @@ def clean_tabletop_pcd(cam_model, table_mask,tabletop_pcd):
 	return tabletop_pcd_clean[:index,:]
 
 def density_clustering(table_top_pcd_clean):
-	return DBSCAN(eps=0.1, min_samples=1000).fit(table_top_pcd_clean)
+	return DBSCAN(eps=0.06, min_samples=1000,algorithm='auto').fit(table_top_pcd_clean)
 
 
 def seg_pcl_from_labels(cluster_labels,table_top_pcd_clean):
@@ -62,11 +62,14 @@ def clustering(cam_model, table_mask, table_top_pcd):
 	db = density_clustering(table_top_pcd_clean)
 	cluster_labels = db.labels_
 	obj_pcl = seg_pcl_from_labels(cluster_labels,table_top_pcd_clean)
+	print np.unique(cluster_labels)
+	# import ipdb
+	# ipdb.set_trace()
 	filtered_mask = table_mask.copy()
 	mask_idx = 2
 	for i in range(len(obj_pcl)):
 		for j in range(obj_pcl[i].shape[0]):
-			coord_2d = cam_model.cam_model.project3dToPixel(obj_pcl[i][j,:])
+			coord_2d = cam_model.project3Dto2D(obj_pcl[i][j,:])
 			coord_2d = list(coord_2d)
 			coord_2d[0] = int(round(coord_2d[0]))
 			coord_2d[1] = int(round(coord_2d[1]))

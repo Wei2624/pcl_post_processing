@@ -263,6 +263,15 @@ from lib.cfg_importer import cfg
 
 # 	return tabletop_pcd_clean[:index,:]
 
+def project3Dto2D(pcd, fx,fy,cx,cy): 
+	mask = np.zeros((cfg.IMG_HEIGHT,cfg.IMG_WIDTH))
+	for i in xrange(pcd.shape[0]):
+		x = int((fx*pcd[i,0])/pcd[i,2] +cx)
+		y = int((fy*pcd[i,1])/pcd[i,2] +cy)
+		mask[y,x] = 1
+	return mask
+
+
 
 if __name__ == "__main__":
 	p = pcl.PointCloud()
@@ -271,38 +280,46 @@ if __name__ == "__main__":
 		print i
 		base_path = '/home/weizhang/DA-RNN/data/LabScene/data/'  + '{:04d}/'.format(i)
 		if not os.path.exists(base_path): os.mkdir(base_path)
-		for j in xrange(13,14):
+		for j in xrange(0,50):
 			start_time = time.time()
 			filename_full_pcd = os.path.join(base_path,'{:04d}_pcl.pcd'.format(j))
 			folder_plane_pcd = os.path.join(base_path,'{:04d}/'.format(j))
 			plane_finder.plane_finder(filename_full_pcd,folder_plane_pcd)
-			print "--- %s seconds ---" % (time.time() - start_time)
+			# print "--- %s seconds ---" % (time.time() - start_time)
 			print j			
 			table_pcd = pcl_processing.table_plane_pcl(p, folder_plane_pcd)
-			print "--- %s seconds ---" % (time.time() - start_time)
+			# print "--- %s seconds ---" % (time.time() - start_time)
 
 			# import ipdb
 			# ipdb.set_trace()
 
 			p.from_file(filename_full_pcd)
+			# import ipdb
+			# ipdb.set_trace()
 			full_pcd = p.to_array()
 
 			table_top_pcd = pcl_processing.pcl_above_plane(table_pcd, full_pcd)
-			print "--- %s seconds ---" % (time.time() - start_time)
+			# print "--- %s seconds ---" % (time.time() - start_time)
 
 			# table_top_pcd = clustering_3D.clean_tabletop_pcd(table_pcd,table_top_pcd)
 
 
 			filename_camera = os.path.join(base_path,'{:04d}_pkl.pkl'.format(j))
-			cam_model = pcl_pixel_transform.Transfomer(filename_camera)
+			cam_model = pcl_pixel_transform.Transfomer(575.8,575.8,314.5,235.5)
 			# print cam_model.cam_model
 
 			# full_mask = cam_model.pcl_to_2dcoord(full_pcd)
 			
 
 			# full_mask = cam_model.pcl_to_2dcoord(full_pcd)
+			# print "--- %s seconds ---" % (time.time() - start_time)
 			table_mask = cam_model.pcl_to_2dcoord(table_pcd)
-			print "--- %s seconds ---" % (time.time() - start_time)
+			# print "--- %s seconds ---" % (time.time() - start_time)
+			# table_mask_test = project3Dto2D(table_pcd,575.8,575.8,314.5,235.5)
+			# print "--- %s seconds ---" % (time.time() - start_time)
+			# plt.imshow(table_mask_test)
+			# plt.show()
+			# print "--- %s seconds ---" % (time.time() - start_time)
 			# plt.imshow(table_mask)
 			# plt.show()
 			# print type(table_mask[0,0])
@@ -423,6 +440,8 @@ if __name__ == "__main__":
 				filtered_mask, mask_idx = clustering_3D.clustering(cam_model, table_mask, table_top_pcd)
 
 			# print filtered_mask[10,10]
+			# plt.imshow(filtered_mask)
+			# plt.show()
 
 			# kernel = np.ones((3,3),np.uint8)
 			# filtered_mask = cv2.erode(filtered_mask,kernel,iterations=1)
@@ -431,7 +450,7 @@ if __name__ == "__main__":
 			# sys.exit()
 
 
-			print "--- %s seconds ---" % (time.time() - start_time)
+			# print "--- %s seconds ---" % (time.time() - start_time)
 			filename_label = os.path.join(base_path,'{:04d}_label.png'.format(j))
 			im_label = cv2.imread(filename_label)
 			im_label = im_label[...,[2,1,0]]
@@ -440,11 +459,22 @@ if __name__ == "__main__":
 
 			im_label = im_label[...,[2,1,0]]
 
+			filename_rgba = os.path.join(base_path,'{:04d}_rgba.png'.format(j))
+
+			rgba_im = cv2.imread(filename_rgba)
+
+			combined_im = np.zeros((cfg.IMG_HEIGHT,cfg.IMG_WIDTH*2,3))
+
+			combined_im[:,0:cfg.IMG_WIDTH,:] = rgba_im
+			combined_im[:,cfg.IMG_WIDTH:cfg.IMG_WIDTH*2,:] = im_label
+
+
+
 			print "--- %s seconds ---" % (time.time() - start_time)
 
-			plt.imshow(im_label)
+			plt.imshow(filtered_mask)
 			plt.show()
 
-			filename_label = os.path.join(base_path,'{:04d}_label_filter_noMarker.png'.format(j))
-			cv2.imwrite(filename_label, im_label)
+			filename_label = os.path.join(base_path,'{:04d}_combined.png'.format(j))
+			cv2.imwrite(filename_label, combined_im)
 

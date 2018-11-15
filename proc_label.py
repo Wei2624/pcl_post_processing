@@ -10,7 +10,7 @@ import pcl
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
-for i in range(5,16):
+for i in range(16,22):
 	print i
 	rgbd_path = '/home/weizhang/DA-RNN/data/LabScene/data/'  + '{:04d}/'.format(i)
 	for j in xrange(0,50):

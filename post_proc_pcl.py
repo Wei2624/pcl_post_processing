@@ -29,6 +29,7 @@ from clustering import clustering_2D
 from clustering import clustering_3D
 from lib.util import point_inline_check
 from lib.util import draw_contours
+from lib.util import label_pcd
 from lib.py_wrapper import find_table_plane
 from vote import voting 
 from pcl_pixel_processing import plane_finder
@@ -458,6 +459,13 @@ if __name__ == "__main__":
 			im_label = im_label[...,[2,1,0]]
 
 			im_label = voting.post_proc_label(filtered_mask,im_label, mask_idx)
+
+			# for jeff
+			lbl_pcd = label_pcd(cam_model, full_pcd, im_label)
+			lbl_pcd = lbl_pcd.flatten()
+
+
+
 
 			im_label = im_label[...,[2,1,0]]
 

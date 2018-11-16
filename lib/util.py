@@ -41,3 +41,18 @@ def check_ele_list(elem,lst):
 		return lst.index(elem)
 	except ValueError:
 		return -1
+
+
+
+def label_pcd(cam_model,pcd,im_label):
+	pcd_lbl = np.zeros((pcd.shape[0],4))
+	for i in range(pcd.shape[0]):
+		pcd_lbl[i,0:3] = pcd[i,:]
+		xy = cam_model.project3Dto2D(pcd[i,:])
+		if tuple(im_label[xy[1],xy[0],:]) in cfg.OUTLIER_COLOR:
+			pcd_lbl[i,3] = cfg.OUTLIER_COLOR.index(tuple(im_label[xy[1],xy[0],:]))
+		if tuple(im_label[xy[1],xy[0],:]) in cfg.LABEL_COLOR:
+			pcd_lbl[i,3] = 2 + cfg.LABEL_COLOR.index(tuple(im_label[xy[1],xy[0],:]))
+		if xy == (238,284):
+			print pcd_lbl[i,:]
+	return pcd_lbl

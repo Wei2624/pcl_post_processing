@@ -463,6 +463,7 @@ if __name__ == "__main__":
 			# for jeff
 			lbl_pcd = label_pcd(cam_model, full_pcd, im_label)
 			lbl_pcd = lbl_pcd.flatten()
+			np.savetxt("lbl_pcd_jeff.csv", lbl_pcd, delimiter=",")
 
 
 

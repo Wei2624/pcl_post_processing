@@ -277,7 +277,7 @@ from lib.cfg_importer import cfg
 
 if __name__ == "__main__":
 	p = pcl.PointCloud()
-	for i in range(15,16):
+	for i in range(24,25):
 		print i
 		base_path = '/home/weizhang/DA-RNN/data/LabScene/data/'  + '{:04d}/'.format(i)
 		if not os.path.exists(base_path): os.mkdir(base_path)
@@ -286,6 +286,13 @@ if __name__ == "__main__":
 			filename_full_pcd = os.path.join(base_path,'{:04d}_pcl.pcd'.format(j))
 			p.from_file(filename_full_pcd)
 			full_pcd = p.to_array()
+
+			# import ipdb
+			# ipdb.set_trace()
+			
+
+
+
 			# folder_plane_pcd = os.path.join(base_path,'{:04d}/'.format(j))
 			table_pcd = find_table_plane(full_pcd)
 			# print "--- %s seconds ---" % (time.time() - start_time)
@@ -460,12 +467,6 @@ if __name__ == "__main__":
 
 			im_label = voting.post_proc_label(filtered_mask,im_label, mask_idx)
 
-			# for jeff
-			lbl_pcd = label_pcd(cam_model, full_pcd, im_label)
-			lbl_pcd = lbl_pcd.flatten()
-			np.savetxt("lbl_pcd_jeff.csv", lbl_pcd, delimiter=",")
-
-
 
 
 			im_label = im_label[...,[2,1,0]]
@@ -483,9 +484,11 @@ if __name__ == "__main__":
 
 			print "--- %s seconds ---" % (time.time() - start_time)
 
-			plt.imshow(filtered_mask)
-			plt.show()
+			# plt.imshow(filtered_mask)
+			# plt.show()
 
 			filename_label = os.path.join(base_path,'{:04d}_combined.png'.format(j))
 			cv2.imwrite(filename_label, combined_im)
+			# filename_label = os.path.join(base_path,'{:04d}_label_filter_noMarker.png'.format(j))
+			# cv2.imwrite(filename_label, im_label)
 

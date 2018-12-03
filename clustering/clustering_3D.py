@@ -43,7 +43,7 @@ def clean_tabletop_pcd(cam_model, table_mask,tabletop_pcd):
 	return tabletop_pcd_clean[:index,:]
 
 def density_clustering(table_top_pcd_clean):
-	return DBSCAN(eps=0.06, min_samples=1000,algorithm='auto').fit(table_top_pcd_clean)
+	return DBSCAN(eps=0.06, min_samples=100,algorithm='auto').fit(table_top_pcd_clean)
 
 
 def seg_pcl_from_labels(cluster_labels,table_top_pcd_clean):

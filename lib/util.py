@@ -16,6 +16,8 @@ import pickle
 
 from cfg_importer import cfg
 
+alpha = 0.4
+
 def point_inline_check(x,y):
 	return (x>0 and x<cfg.IMG_HEIGHT-1 and y>0 and y<cfg.IMG_WIDTH-1)
 
@@ -44,15 +46,22 @@ def check_ele_list(elem,lst):
 
 
 
-def label_pcd(cam_model,pcd,im_label):
-	pcd_lbl = np.zeros((pcd.shape[0],4))
+def label_pcd(cam_model,pcd,im_label,rgb_img):
+	pcd_lbl = np.zeros((pcd.shape[0],6))
 	for i in range(pcd.shape[0]):
 		pcd_lbl[i,0:3] = pcd[i,:]
 		xy = cam_model.project3Dto2D(pcd[i,:])
+		xy = (max(0,xy[0]-40), min(479,xy[1]+10))
+
 		if tuple(im_label[xy[1],xy[0],:]) in cfg.OUTLIER_COLOR:
-			pcd_lbl[i,3] = cfg.OUTLIER_COLOR.index(tuple(im_label[xy[1],xy[0],:]))
+			if tuple(im_label[xy[1],xy[0],:])[0] != 255:
+				pcd_lbl[i,3:6] = (0,0,0)
+			else:
+				# pcd_lbl[i,3:6] = cfg.OUTLIER_COLOR.index(tuple(im_label[xy[1],xy[0],:]))
+				pcd_lbl[i,3:6] = im_label[xy[1],xy[0],:]*alpha + (1-alpha)*rgb_img[xy[1],xy[0],:]
 		if tuple(im_label[xy[1],xy[0],:]) in cfg.LABEL_COLOR:
-			pcd_lbl[i,3] = 2 + cfg.LABEL_COLOR.index(tuple(im_label[xy[1],xy[0],:]))
-		if xy == (238,284):
-			print pcd_lbl[i,:]
+			# pcd_lbl[i,3] = 2 + cfg.LABEL_COLOR.index(tuple(im_label[xy[1],xy[0],:]))
+			pcd_lbl[i,3:6] = im_label[xy[1],xy[0],:]*alpha + (1-alpha)*rgb_img[xy[1],xy[0],:]
+		# if xy == (238,284):
+		# 	print pcd_lbl[i,:]
 	return pcd_lbl

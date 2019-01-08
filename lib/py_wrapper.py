@@ -7,7 +7,7 @@ import numpy as np
 
 
 def find_table_plane(pcd):
-	lib = npct.load_library("table_finder/testlib", ".")
+	lib = npct.load_library("/home/weizhang/Documents/pcl_post_processing/table_finder/testlib", ".")
 	array_1d_double = npct.ndpointer(dtype=np.double, ndim=1, flags='CONTIGUOUS')
 	out = np.zeros((500000))
 	pcd_arr = np.ones((pcd.shape[0]*3))

@@ -7,7 +7,7 @@ import curvox
 import pcl
 import image_geometry
 import random
-from mpl_toolkits.mplot3d import Axes3D
+# from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
 import tf
@@ -48,10 +48,15 @@ def check_ele_list(elem,lst):
 
 def label_pcd(cam_model,pcd,im_label,rgb_img):
 	pcd_lbl = np.zeros((pcd.shape[0],6))
+	offset_x = 30
+	offset_y = -20
+	offset_x = 0
+	offset_y = 0
 	for i in range(pcd.shape[0]):
-		pcd_lbl[i,0:3] = pcd[i,:]
 		xy = cam_model.project3Dto2D(pcd[i,:])
-		xy_new = (max(0,xy[0]- 20), min(479,xy[1]+30))
+		if xy == None: continue
+		pcd_lbl[i,0:3] = pcd[i,:]
+		xy_new = (max(0,xy[0] + offset_y), min(479,xy[1]+offset_x))
 
 		if tuple(im_label[xy[1],xy[0],:]) in cfg.OUTLIER_COLOR:
 			if tuple(im_label[xy[1],xy[0],:])[0] != 255:

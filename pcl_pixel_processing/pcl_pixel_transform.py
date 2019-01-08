@@ -7,7 +7,7 @@ import curvox
 import pcl
 import image_geometry
 import random
-from mpl_toolkits.mplot3d import Axes3D
+# from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import math
 import pickle
@@ -64,6 +64,7 @@ class Transfomer():
 		return unit_pcl
 
 	def project3Dto2D(self,pt):
+		if np.isnan(pt).any(): return None
 		x = int((self.fx*pt[0])/pt[2] + self.cx)
 		y = int((self.fy*pt[1])/pt[2] +self.cy)
 		return (x,y)

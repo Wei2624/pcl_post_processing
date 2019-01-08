@@ -5,7 +5,7 @@ import sys
 import scipy.io
 import pcl
 import random
-from mpl_toolkits.mplot3d import Axes3D
+# from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import math
 import pickle
@@ -21,16 +21,19 @@ def post_proc_label(full_mask, im_label, total_index):
 
 	start_idx = 2
 
+	offset_x = 0
+	offset_y = 0
+
 	if cfg.CLUSTERING_DIM == '2D': start_idx = 3
 
 	for idx in xrange(start_idx,total_index):
 		pos = np.where(full_mask == idx)
-		print pos[0].shape
+		# print pos[0].shape
 		votes = np.zeros((len(cfg.LABEL_COLOR)))
 		for i in xrange(pos[0].shape[0]):
-			if point_inline_check(pos[0][i]+40,pos[1][i]-10):
-				if not tuple(im_label[pos[0][i]+40,pos[1][i]-10,:]) in cfg.OUTLIER_COLOR: 
-					vote = cfg.LABEL_COLOR.index(tuple(im_label[pos[0][i]+40,pos[1][i]-10,:]))
+			if point_inline_check(pos[0][i]+offset_y,pos[1][i]+offset_x):
+				if not tuple(im_label[pos[0][i]+offset_y,pos[1][i]+offset_x,:]) in cfg.OUTLIER_COLOR: 
+					vote = cfg.LABEL_COLOR.index(tuple(im_label[pos[0][i]+offset_y,pos[1][i]+offset_x,:]))
 					votes[vote] += 1
 		print votes
 		# mask = np.zeros((HEIGHT,WIDTH,3))

@@ -29,3 +29,19 @@ from pcl_pixel_processing import plane_finder
 from lib.cfg_importer import cfg
 
 
+pcd_filepath = '/home/weizhang/Documents/domain-adaptation/examples/0_pcl.pcd'
+p = pcl.PointCloud()
+p.from_file(pcd_filepath)
+full_pcd = p.to_array()
+
+# full_pcd = full_pcd[~np.isnan(full_pcd[:,2]),:]
+
+start_time = time.time()
+
+full_pcd = full_pcd[~np.isnan(full_pcd[:,2]),:]
+
+print "--- %s seconds ---" % (time.time() - start_time)
+
+table_pcd = find_table_plane(full_pcd)
+
+print "--- %s seconds ---" % (time.time() - start_time)
